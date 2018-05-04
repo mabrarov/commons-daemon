@@ -101,7 +101,7 @@ typedef struct APXPROCESS {
 /** Process worker thread
  * Monitors the process thread
  */
-static DWORD WINAPI __apxProcWorkerThread(LPVOID lpParameter)
+static unsigned WINAPI __apxProcWorkerThread(LPVOID lpParameter)
 {
     APXHANDLE hProcess = (APXHANDLE)lpParameter;
     LPAPXPROCESS lpProc;
@@ -131,11 +131,11 @@ static DWORD WINAPI __apxProcWorkerThread(LPVOID lpParameter)
         /* Close that handle */
 #endif
     }
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
-static DWORD WINAPI __apxProcStdoutThread(LPVOID lpParameter)
+static unsigned WINAPI __apxProcStdoutThread(LPVOID lpParameter)
 {
     APXHANDLE hProcess = (APXHANDLE)lpParameter;
     LPAPXPROCESS lpProc;
@@ -158,11 +158,11 @@ static DWORD WINAPI __apxProcStdoutThread(LPVOID lpParameter)
         dwReaded = 0;
         SwitchToThread();
     }
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
-static DWORD WINAPI __apxProcStderrThread(LPVOID lpParameter)
+static unsigned WINAPI __apxProcStderrThread(LPVOID lpParameter)
 {
     APXHANDLE hProcess = (APXHANDLE)lpParameter;
     LPAPXPROCESS lpProc;
@@ -186,7 +186,7 @@ static DWORD WINAPI __apxProcStderrThread(LPVOID lpParameter)
         SwitchToThread();
     }
 
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
@@ -565,7 +565,7 @@ apxProcessExecute(APXHANDLE hProcess)
 {
     LPAPXPROCESS lpProc;
     STARTUPINFOW si;
-    DWORD id;
+    unsigned id;
     BOOL  bS = FALSE;
 
     if (hProcess->dwType != APXHANDLE_TYPE_PROCESS)
@@ -632,12 +632,12 @@ apxProcessExecute(APXHANDLE hProcess)
     /* Set the running flag */
     lpProc->dwChildStatus |= (CHILD_RUNNING | PROC_INITIALIZED);
 
-    lpProc->hWorkerThreads[0] = CreateThread(NULL, 0, __apxProcStdoutThread,
+    lpProc->hWorkerThreads[0] = (HANDLE)_beginthreadex(NULL, 0, __apxProcStdoutThread,
                                              hProcess, 0, &id);
-    lpProc->hWorkerThreads[1] = CreateThread(NULL, 0, __apxProcStderrThread,
+    lpProc->hWorkerThreads[1] = (HANDLE)_beginthreadex(NULL, 0, __apxProcStderrThread,
                                              hProcess, 0, &id);
     ResumeThread(lpProc->stProcInfo.hThread);
-    lpProc->hWorkerThreads[2] = CreateThread(NULL, 0, __apxProcWorkerThread,
+    lpProc->hWorkerThreads[2] = (HANDLE)_beginthreadex(NULL, 0, __apxProcWorkerThread,
                                             hProcess, 0, &id);
 
     SAFE_CLOSE_HANDLE(lpProc->stProcInfo.hThread);

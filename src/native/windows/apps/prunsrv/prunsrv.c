@@ -247,7 +247,7 @@ static BOOL   gSignalValid   = TRUE;
 static APXJAVA_THREADARGS gRargs;
 static APXJAVA_THREADARGS gSargs;
 
-DWORD WINAPI eventThread(LPVOID lpParam)
+unsigned WINAPI eventThread(LPVOID lpParam)
 {
     DWORD dwRotateCnt = SO_LOGROTATE;
 
@@ -273,7 +273,7 @@ DWORD WINAPI eventThread(LPVOID lpParam)
         }
         break;
     }
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
@@ -932,7 +932,7 @@ static int onExitStart(void)
 }
 
 /* Executed when the service receives stop event */
-static DWORD WINAPI serviceStop(LPVOID lpParameter)
+static unsigned WINAPI serviceStop(LPVOID lpParameter)
 {
     APXHANDLE hWorker = NULL;
     DWORD  rv = 0;
@@ -1295,7 +1295,7 @@ cleanup:
  */
 void WINAPI service_ctrl_handler(DWORD dwCtrlCode)
 {
-    DWORD  threadId;
+    unsigned threadId;
     HANDLE stopThread;
 
     switch (dwCtrlCode) {
@@ -1304,7 +1304,7 @@ void WINAPI service_ctrl_handler(DWORD dwCtrlCode)
         case SERVICE_CONTROL_STOP:
             reportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 3 * 1000);
             /* Stop the service asynchronously */
-            stopThread = CreateThread(NULL, 0,
+            stopThread = (HANDLE)_beginthreadex(NULL, 0,
                                       serviceStop,
                                       (LPVOID)dwCtrlCode,
                                       0, &threadId);
@@ -1390,8 +1390,8 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
         CleanNullACL((void *)sa);
 
         if (gSignalEvent) {
-            DWORD tid;
-            gSignalThread = CreateThread(NULL, 0, eventThread, NULL, 0, &tid);
+            unsigned tid;
+            gSignalThread = (HANDLE)_beginthreadex(NULL, 0, eventThread, NULL, 0, &tid);
         }
     }
     /* Check the StartMode */

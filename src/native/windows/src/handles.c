@@ -134,7 +134,7 @@ static void __apxPoolFreeCore(LPVOID lpMem)
 /*
  *
  */
-static DWORD WINAPI __apxHandleEventThread(LPVOID lpParameter)
+static unsigned WINAPI __apxHandleEventThread(LPVOID lpParameter)
 {
     APXHANDLE hHandle = (APXHANDLE)lpParameter;
     DWORD rv = 0;
@@ -507,7 +507,7 @@ apxHandleCreate(APXHANDLE hPool, DWORD dwFlags,
     if (dwFlags & APXHANDLE_HAS_EVENT) {
         /* Create the message event and message wathcing thread */
         hHandle->hEventHandle = CreateEvent(NULL, TRUE, FALSE, NULL);
-        hHandle->hEventThread = CreateThread(NULL, 0, __apxHandleEventThread,
+        hHandle->hEventThread = (HANDLE)_beginthreadex(NULL, 0, __apxHandleEventThread,
                                             hHandle, 0,
                                             &(hHandle->hEventThreadId));
         if (IS_INVALID_HANDLE(hHandle->hEventThread)) {

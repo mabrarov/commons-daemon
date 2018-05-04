@@ -1617,7 +1617,7 @@ static BOOL saveConfiguration()
 }
 
 static BOOL isManagerRunning = FALSE;
-static DWORD WINAPI refreshThread(LPVOID lpParam)
+static unsigned WINAPI refreshThread(LPVOID lpParam)
 {
     while (isManagerRunning) {
         /* Refresh property window */
@@ -1767,7 +1767,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
         return FALSE;
     }
     isManagerRunning = TRUE;
-    CreateThread(NULL, 0, refreshThread, NULL, 0, NULL);
+    _beginthreadex(NULL, 0, refreshThread, NULL, 0, NULL);
     /* Create main invisible window */
     _gui_store->hMainWnd = CreateWindow(_gui_store->szWndClass,
                                         apxLoadResource(IDS_APPLICATION, 0),

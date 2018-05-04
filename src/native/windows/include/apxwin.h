@@ -36,6 +36,7 @@
 #include <zmouse.h>
 #include <richedit.h>
 #include <lm.h>
+#include <process.h>
 
 #ifndef _INTPTR_T_DEFINED
 #ifdef  _WIN64
