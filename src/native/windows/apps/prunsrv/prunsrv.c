@@ -36,9 +36,6 @@
 #define  MIN(a,b)    (((a)<(b)) ? (a) : (b))
 #endif
 
-#define STDIN_FILENO  0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
 #define ONE_MINUTE    (60 * 1000)
 
 #ifdef _WIN64
@@ -314,10 +311,8 @@ static BOOL redirectStdStreams(APX_STDWRAP *lpWrapper, LPAPXCMDLINE lpCmdline)
          */
         if (!aOut)
             DeleteFileW(lpWrapper->szStdOutFilename);
-        if ((lpWrapper->fpStdOutFile = _wfopen(lpWrapper->szStdOutFilename,
-                                               L"a"))) {
-            _dup2(_fileno(lpWrapper->fpStdOutFile), 1);
-            *stdout = *lpWrapper->fpStdOutFile;
+        if ((lpWrapper->fpStdOutFile = _wfreopen(lpWrapper->szStdOutFilename,
+                                                 L"a", stdout))) {
             setvbuf(stdout, NULL, _IONBF, 0);
         }
         else
@@ -338,19 +333,12 @@ static BOOL redirectStdStreams(APX_STDWRAP *lpWrapper, LPAPXCMDLINE lpCmdline)
         }
         if (!aErr)
             DeleteFileW(lpWrapper->szStdErrFilename);
-        if ((lpWrapper->fpStdErrFile = _wfopen(lpWrapper->szStdErrFilename,
-                                              L"a"))) {
-            _dup2(_fileno(lpWrapper->fpStdErrFile), 2);
-            *stderr = *lpWrapper->fpStdErrFile;
+        if ((lpWrapper->fpStdErrFile = _wfreopen(lpWrapper->szStdErrFilename,
+                                                 L"a", stderr))) {
             setvbuf(stderr, NULL, _IONBF, 0);
         }
         else
             lpWrapper->szStdOutFilename = NULL;
-    }
-    else if (lpWrapper->fpStdOutFile) {
-        _dup2(_fileno(lpWrapper->fpStdOutFile), 2);
-        *stderr = *lpWrapper->fpStdOutFile;
-         setvbuf(stderr, NULL, _IONBF, 0);
     }
     return TRUE;
 }
