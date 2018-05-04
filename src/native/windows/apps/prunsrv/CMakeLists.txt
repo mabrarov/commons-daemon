@@ -61,7 +61,7 @@ endif()
 
 if(MSVC)
     list(APPEND resource_compile_options
-        "/l 0x419")
+        "/l 0x409")
 endif()
 
 list(APPEND cxx_headers
