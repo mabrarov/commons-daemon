@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.4)
 project(prunmgr)
 
 find_package(JNI REQUIRED)
@@ -13,6 +13,7 @@ set(cxx_headers )
 set(cxx_sources )
 set(resource_headers )
 set(resource_sources )
+set(manifest_files )
 set(link_options )
 set(libraries )
 
@@ -40,17 +41,12 @@ endif()
 
 if(MSVC)
     list(APPEND cxx_compile_options
+        "/W3"
         "/TC"
         "/EHsc"
         "/Zi"
         "$<$<NOT:$<CONFIG:DEBUG>>:/Ob2>"
-        "/W3"
-        "/GS"
-        "/Zc:wchar_t"
-        "/Zc:inline"
-        "/Zc:forScope"
-        "/fp:precise"
-        "/Gd")
+        "$<$<CONFIG:DEBUG>:/RTC1>")
     if(NOT (CMAKE_SIZEOF_VOID_P EQUAL 8))
         list(APPEND cxx_compile_options
             "$<$<NOT:$<CONFIG:DEBUG>>:/Oy->")
@@ -96,9 +92,13 @@ list(APPEND resource_headers
 list(APPEND resource_sources
     "${dm_native_windows_apps_dir}/prunmgr/prunmgr.rc")
 
+list(APPEND manifest_files
+    "${dm_native_windows_apps_dir}/prunmgr/prunmgr.manifest")
+
 set(resource_files
     ${resource_headers}
-    ${resource_sources})
+    ${resource_sources}
+    ${manifest_files})
 
 set_property(SOURCE ${resource_sources} APPEND PROPERTY COMPILE_FLAGS ${resource_compile_options})
 
@@ -109,7 +109,8 @@ if(MSVC)
         "/NXCOMPAT"
         "/DEBUG"
         "/INCREMENTAL:NO"
-        "/OPT:REF")
+        "/OPT:REF"
+        "/MANIFEST:NO")
 endif()
 
 list(APPEND libraries
@@ -132,7 +133,8 @@ add_executable(${target_name} WIN32
     ${cxx_headers}
     ${cxx_sources}
     ${resource_headers}
-    ${resource_sources})
+    ${resource_sources}
+    ${manifest_files})
 target_compile_options(${target_name}
     PRIVATE
     ${cxx_compile_options})
