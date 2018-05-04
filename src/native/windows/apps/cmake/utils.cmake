@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.0)
 #   files    - files or directories to scan (list).
 #   base_dir - directory being considered as a base if file name is relative.
 #   results  - name of variable to store list of sub-directories.
-function(dm_list_subdirs files base_dir results)
+function(cmdm_list_subdirs files base_dir results)
     get_filename_component(cmake_base_dir "${base_dir}" ABSOLUTE)
     file(TO_CMAKE_PATH "${cmake_base_dir}" cmake_base_dir)
 
@@ -53,7 +53,7 @@ endfunction()
 #   filter_dir - directory which is used to filter souce list. 
 #                Only files located directly in this directory are returned.
 #   results    - name of variable to store filtered list.
-function(dm_filter_files files base_dir filter_dir results)
+function(cmdm_filter_files files base_dir filter_dir results)
     get_filename_component(cmake_base_dir "${base_dir}" ABSOLUTE)
     get_filename_component(cmake_filter_dir "${filter_dir}" ABSOLUTE)
     file(TO_CMAKE_PATH "${cmake_base_dir}"   cmake_base_dir)
@@ -90,11 +90,11 @@ endfunction()
 #                     with base source group name. 
 #   files           - files (list) to associate with source groups built according to relative 
 #                     (comparing with base_dir) paths.
-function(dm_dir_source_group base_group_name base_dir files)
-    dm_list_subdirs("${files}" "${base_dir}" subdirs)
+function(cmdm_dir_source_group base_group_name base_dir files)
+    cmdm_list_subdirs("${files}" "${base_dir}" subdirs)
     foreach(subdir IN LISTS subdirs)
         string(REPLACE "/" "\\" subdir_group_name "${base_group_name}/${subdir}")
-        dm_filter_files("${files}" "${CMAKE_CURRENT_BINARY_DIR}" "${base_dir}/${subdir}" subdir_files)
+        cmdm_filter_files("${files}" "${CMAKE_CURRENT_BINARY_DIR}" "${base_dir}/${subdir}" subdir_files)
         source_group("${subdir_group_name}" FILES ${subdir_files})
     endforeach()
 endfunction()
@@ -103,7 +103,7 @@ endfunction()
 # Parameters:
 #   target_name - name of the target to specify output directory.
 #   output_dir  - output directory to specify.
-function(dm_set_target_output_dir target_name output_dir)
+function(cmdm_set_target_output_dir target_name output_dir)
     set(configuration_types ${CMAKE_CONFIGURATION_TYPES})
     if(NOT configuration_types AND DEFINED CMAKE_BUILD_TYPE)
         list(APPEND configuration_types ${CMAKE_BUILD_TYPE})
@@ -117,7 +117,7 @@ function(dm_set_target_output_dir target_name output_dir)
     endforeach()
 endfunction()
 
-function(dm_list_to_string list separator result)
+function(cmdm_list_to_string list separator result)
     set(str )
     set(first_item TRUE)
     foreach(item IN LISTS list)
