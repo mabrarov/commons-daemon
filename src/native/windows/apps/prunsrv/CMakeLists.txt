@@ -52,6 +52,11 @@ if(MSVC)
         list(APPEND cxx_compile_options
             "$<$<NOT:$<CONFIG:DEBUG>>:/Oy->")
     endif()
+    if((MSVC_VERSION EQUAL 1900) OR (MSVC_VERSION GREATER 1900))
+        # Turn off option which is not turned on by default in command line
+        list(APPEND cxx_compile_options
+            "/Zc:inline-")
+    endif()
 endif()
 
 if(MSVC)
