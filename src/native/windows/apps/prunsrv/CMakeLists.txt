@@ -23,9 +23,9 @@ list(APPEND cxx_compile_definitions
     "_WIN32"
     "_WINDOWS"
     "_WINNT"
-    "_WIN32_WINNT=0x0700"
-    "WINVER=0x0700"
-    "_WIN32_IE=0x0800"
+    "_WIN32_WINNT=${cmdm_nmake_winver}"
+    "WINVER=${cmdm_nmake_winver}"
+    "_WIN32_IE=${cmdm_win32_ie}"
     "_UNICODE"
     "UNICODE"
     "_CRT_SECURE_NO_WARNINGS")
@@ -65,41 +65,41 @@ if(MSVC)
 endif()
 
 list(APPEND cxx_headers
-    "${dm_native_windows_include_dir}/apxwin.h"
-    "${dm_native_windows_include_dir}/cmdline.h"
-    "${dm_native_windows_include_dir}/console.h"
-    "${dm_native_windows_include_dir}/gui.h"
-    "${dm_native_windows_include_dir}/handles.h"
-    "${dm_native_windows_include_dir}/javajni.h"
-    "${dm_native_windows_include_dir}/log.h"
-    "${dm_native_windows_include_dir}/registry.h"
-    "${dm_native_windows_include_dir}/rprocess.h"
-    "${dm_native_windows_include_dir}/service.h"
-    "${dm_native_windows_src_dir}/mclib.h"
-    "${dm_native_windows_src_dir}/private.h")
+    "${cmdm_native_windows_include_dir}/apxwin.h"
+    "${cmdm_native_windows_include_dir}/cmdline.h"
+    "${cmdm_native_windows_include_dir}/console.h"
+    "${cmdm_native_windows_include_dir}/gui.h"
+    "${cmdm_native_windows_include_dir}/handles.h"
+    "${cmdm_native_windows_include_dir}/javajni.h"
+    "${cmdm_native_windows_include_dir}/log.h"
+    "${cmdm_native_windows_include_dir}/registry.h"
+    "${cmdm_native_windows_include_dir}/rprocess.h"
+    "${cmdm_native_windows_include_dir}/service.h"
+    "${cmdm_native_windows_src_dir}/mclib.h"
+    "${cmdm_native_windows_src_dir}/private.h")
 
 list(APPEND cxx_sources
-    "${dm_native_windows_src_dir}/cmdline.c"
-    "${dm_native_windows_src_dir}/console.c"
-    "${dm_native_windows_src_dir}/gui.c"
-    "${dm_native_windows_src_dir}/handles.c"
-    "${dm_native_windows_src_dir}/javajni.c"
-    "${dm_native_windows_src_dir}/log.c"
-    "${dm_native_windows_src_dir}/mclib.c"
-    "${dm_native_windows_src_dir}/registry.c"
-    "${dm_native_windows_src_dir}/rprocess.c"
-    "${dm_native_windows_src_dir}/service.c"
-    "${dm_native_windows_src_dir}/utils.c"
-    "${dm_native_windows_apps_dir}/prunsrv/prunsrv.c")
+    "${cmdm_native_windows_src_dir}/cmdline.c"
+    "${cmdm_native_windows_src_dir}/console.c"
+    "${cmdm_native_windows_src_dir}/gui.c"
+    "${cmdm_native_windows_src_dir}/handles.c"
+    "${cmdm_native_windows_src_dir}/javajni.c"
+    "${cmdm_native_windows_src_dir}/log.c"
+    "${cmdm_native_windows_src_dir}/mclib.c"
+    "${cmdm_native_windows_src_dir}/registry.c"
+    "${cmdm_native_windows_src_dir}/rprocess.c"
+    "${cmdm_native_windows_src_dir}/service.c"
+    "${cmdm_native_windows_src_dir}/utils.c"
+    "${cmdm_native_windows_apps_dir}/prunsrv/prunsrv.c")
 
 list(APPEND resource_headers
-    "${dm_native_windows_apps_dir}/prunsrv/prunsrv.h")
+    "${cmdm_native_windows_apps_dir}/prunsrv/prunsrv.h")
 
 list(APPEND resource_sources
-    "${dm_native_windows_apps_dir}/prunsrv/prunsrv.rc")
+    "${cmdm_native_windows_apps_dir}/prunsrv/prunsrv.rc")
 
 list(APPEND manifest_files
-    "${dm_native_windows_apps_dir}/prunsrv/prunsrv.manifest")
+    "${cmdm_native_windows_apps_dir}/prunsrv/prunsrv.manifest")
 
 set(resource_files
     ${resource_headers}
@@ -156,14 +156,14 @@ target_compile_definitions(${target_name}
     ${cxx_compile_definitions})
 target_include_directories(${target_name}
     PUBLIC
-    ${dm_native_windows_include_dir}
-    ${dm_native_windows_src_dir}
+    ${cmdm_native_windows_include_dir}
+    ${cmdm_native_windows_src_dir}
     ${JNI_INCLUDE_DIRS})
 
 set(link_option_str "")
 if(NOT MSVC)
     # This should work for most of CMake generators except Visual Studio
-    dm_list_to_string("${link_options}" "," link_option_str)
+    cmdm_list_to_string("${link_options}" "," link_option_str)
 endif()
 
 target_link_libraries(${target_name}
@@ -180,12 +180,12 @@ endif()
 
 # Do not put results of build to the same place as makefiles do
 # because "CMake style" prefers out-of-source tree builds.
-#dm_set_target_output_dir(${target_name} "${dm_target_dir}")
+#cmdm_set_target_output_dir(${target_name} "${cmdm_target_dir}")
 set_target_properties(${target_name} PROPERTIES OUTPUT_NAME "${output_name}")
 
-if(NOT dm_no_cmake_dir_source_group)
+if(NOT cmdm_no_cmake_dir_source_group)
     # Group files according to file path
-    dm_dir_source_group("Header Files" "${dm_native_windows_dir}" "${cxx_headers}")
-    dm_dir_source_group("Source Files" "${dm_native_windows_dir}" "${cxx_sources}")
-    dm_dir_source_group("Resource Files" "${dm_native_windows_dir}" "${resource_files}")
+    cmdm_dir_source_group("Header Files" "${cmdm_native_windows_dir}" "${cxx_headers}")
+    cmdm_dir_source_group("Source Files" "${cmdm_native_windows_dir}" "${cxx_sources}")
+    cmdm_dir_source_group("Resource Files" "${cmdm_native_windows_dir}" "${resource_files}")
 endif()
