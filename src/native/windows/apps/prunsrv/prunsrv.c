@@ -37,9 +37,6 @@
 #define  MIN(a,b)    (((a)<(b)) ? (a) : (b))
 #endif
 
-#define STDIN_FILENO  0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
 #define ONE_MINUTE    (60 * 1000)
 
 #ifdef _WIN64
@@ -252,7 +249,7 @@ static BOOL   gSignalValid   = TRUE;
 static APXJAVA_THREADARGS gRargs;
 static APXJAVA_THREADARGS gSargs;
 
-DWORD WINAPI eventThread(LPVOID lpParam)
+unsigned WINAPI eventThread(LPVOID lpParam)
 {
     DWORD dwRotateCnt = SO_LOGROTATE;
 
@@ -278,7 +275,7 @@ DWORD WINAPI eventThread(LPVOID lpParam)
         }
         break;
     }
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
@@ -319,10 +316,8 @@ static BOOL redirectStdStreams(APX_STDWRAP *lpWrapper, LPAPXCMDLINE lpCmdline)
          */
         if (!aOut)
             DeleteFileW(lpWrapper->szStdOutFilename);
-        if ((lpWrapper->fpStdOutFile = _wfopen(lpWrapper->szStdOutFilename,
-                                               L"a"))) {
-            _dup2(_fileno(lpWrapper->fpStdOutFile), 1);
-            *stdout = *lpWrapper->fpStdOutFile;
+        if ((lpWrapper->fpStdOutFile = _wfreopen(lpWrapper->szStdOutFilename,
+                                                 L"a", stdout))) {
             setvbuf(stdout, NULL, _IONBF, 0);
         }
         else
@@ -343,19 +338,12 @@ static BOOL redirectStdStreams(APX_STDWRAP *lpWrapper, LPAPXCMDLINE lpCmdline)
         }
         if (!aErr)
             DeleteFileW(lpWrapper->szStdErrFilename);
-        if ((lpWrapper->fpStdErrFile = _wfopen(lpWrapper->szStdErrFilename,
-                                              L"a"))) {
-            _dup2(_fileno(lpWrapper->fpStdErrFile), 2);
-            *stderr = *lpWrapper->fpStdErrFile;
+        if ((lpWrapper->fpStdErrFile = _wfreopen(lpWrapper->szStdErrFilename,
+                                                 L"a", stderr))) {
             setvbuf(stderr, NULL, _IONBF, 0);
         }
         else
             lpWrapper->szStdOutFilename = NULL;
-    }
-    else if (lpWrapper->fpStdOutFile) {
-        _dup2(_fileno(lpWrapper->fpStdOutFile), 2);
-        *stderr = *lpWrapper->fpStdOutFile;
-         setvbuf(stderr, NULL, _IONBF, 0);
     }
     return TRUE;
 }
@@ -973,7 +961,7 @@ static int onExitStart(void)
 }
 
 /* Executed when the service receives stop event */
-static DWORD WINAPI serviceStop(LPVOID lpParameter)
+static unsigned WINAPI serviceStop(LPVOID lpParameter)
 {
     APXHANDLE hWorker = NULL;
     DWORD  rv = 0;
@@ -1346,7 +1334,7 @@ cleanup:
  */
 void WINAPI service_ctrl_handler(DWORD dwCtrlCode)
 {
-    DWORD  threadId;
+    unsigned threadId;
     HANDLE stopThread;
 
     switch (dwCtrlCode) {
@@ -1360,7 +1348,7 @@ void WINAPI service_ctrl_handler(DWORD dwCtrlCode)
                 reportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 3 * 1000);
             }
             /* Stop the service asynchronously */
-            stopThread = CreateThread(NULL, 0,
+            stopThread = (HANDLE)_beginthreadex(NULL, 0,
                                       serviceStop,
                                       (LPVOID)dwCtrlCode,
                                       0, &threadId);
@@ -1440,8 +1428,8 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
         CleanNullACL((void *)sa);
 
         if (gSignalEvent) {
-            DWORD tid;
-            gSignalThread = CreateThread(NULL, 0, eventThread, NULL, 0, &tid);
+            unsigned tid;
+            gSignalThread = (HANDLE)_beginthreadex(NULL, 0, eventThread, NULL, 0, &tid);
         }
     }
     /* Check the StartMode */

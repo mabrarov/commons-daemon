@@ -394,7 +394,7 @@ apxCreateJava(APXHANDLE hPool, LPCWSTR szJvmDllPath)
     return hJava;
 }
 
-static DWORD WINAPI __apxJavaDestroyThread(LPVOID lpParameter)
+static unsigned WINAPI __apxJavaDestroyThread(LPVOID lpParameter)
 {
     JavaVM *lpJvm = (JavaVM *)lpParameter;
     (*lpJvm)->DestroyJavaVM(lpJvm);
@@ -405,14 +405,14 @@ BOOL
 apxDestroyJvm(DWORD dwTimeout)
 {
     if (_st_sys_jvm) {
-        DWORD  tid;
+        unsigned  tid;
         HANDLE hWaiter;
         BOOL   rv = FALSE;
         JavaVM *lpJvm = _st_sys_jvm;
 
         _st_sys_jvm = NULL;
         (*lpJvm)->DetachCurrentThread(lpJvm);
-        hWaiter = CreateThread(NULL, 0, __apxJavaDestroyThread,
+        hWaiter = (HANDLE)_beginthreadex(NULL, 0, __apxJavaDestroyThread,
                                (void *)lpJvm, 0, &tid);
         if (IS_INVALID_HANDLE(hWaiter)) {
             apxLogWrite(APXLOG_MARK_SYSERR);
@@ -946,7 +946,7 @@ apxJavaLoadMainClass(APXHANDLE hJava, LPCSTR szClassName,
  * It will launch Java main and wait until
  * it finishes.
  */
-static DWORD WINAPI __apxJavaWorkerThread(LPVOID lpParameter)
+static unsigned WINAPI __apxJavaWorkerThread(LPVOID lpParameter)
 {
 #define WORKER_EXIT(x)  do { rv = x; goto finished; } while(0)
     DWORD rv = 0;
@@ -1014,7 +1014,7 @@ finished:
                     lpJava->clWorker.sClazz, lpJava->clWorker.sMethod, rv);
         SetEvent(lpJava->hWorkerInit);
     }
-    ExitThread(rv);
+    _endthreadex(rv);
     /* never gets here but keep the compiler happy */
     return rv;
 }
@@ -1029,7 +1029,7 @@ apxJavaStart(LPAPXJAVA_THREADARGS pArgs)
     lpJava->dwWorkerStatus = 0;
     lpJava->hWorkerInit    = CreateEvent(NULL, FALSE, FALSE, NULL);
     lpJava->hWorkerSync    = CreateEvent(NULL, FALSE, FALSE, NULL);
-    lpJava->hWorkerThread  = CreateThread(NULL,
+    lpJava->hWorkerThread  = (HANDLE)_beginthreadex(NULL,
                                           lpJava->szStackSize,
                                           __apxJavaWorkerThread,
                                           pArgs, CREATE_SUSPENDED,

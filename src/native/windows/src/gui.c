@@ -387,20 +387,20 @@ void apxAboutBox(HWND hWnd)
               (DLGPROC)__apxAboutDlgProc);
 }
 
-static DWORD WINAPI __apxProgressWorkerThread(LPVOID lpParameter)
+static unsigned WINAPI __apxProgressWorkerThread(LPVOID lpParameter)
 {
     LPPROGRESS_DLGPARAM lpDlgParam = (LPPROGRESS_DLGPARAM)lpParameter;
 
     (*lpDlgParam->fnCb)(NULL, WM_USER+1, 0, (LPARAM)lpDlgParam->hDialog); 
     CloseHandle(lpDlgParam->hThread);
-    ExitThread(0);
+    _endthreadex(0);
     return 0;
 }
 
 static LRESULT CALLBACK __apxProgressDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     LPPROGRESS_DLGPARAM lpDlgParam;
-    DWORD dwId;
+    unsigned dwId;
     switch (uMsg) {
         case WM_INITDIALOG:
             lpDlgParam = (LPPROGRESS_DLGPARAM)lParam;
@@ -410,7 +410,7 @@ static LRESULT CALLBACK __apxProgressDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
                 SetDlgItemTextW(hDlg, IDDP_TEXT, lpDlgParam->szText);
             }
             lpDlgParam->hDialog = hDlg;
-            lpDlgParam->hThread = CreateThread(NULL, 0, __apxProgressWorkerThread,
+            lpDlgParam->hThread = (HANDLE)_beginthreadex(NULL, 0, __apxProgressWorkerThread,
                                                lpDlgParam, 0, &dwId); 
         break;
         case WM_COMMAND:
