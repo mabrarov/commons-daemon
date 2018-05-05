@@ -1612,7 +1612,7 @@ BOOL docmdRunService(LPAPXCMDLINE lpCmdline)
         _service_mode = TRUE;
         _service_name = lpCmdline->szApplication;
         apxLogWrite(APXLOG_MARK_INFO "Running '%S' Service...", _service_name);
-        dispatcherThread = (HANDLE) _beginthreadex(NULL, 0, serviceCtrlDispatcherThread, lpCmdline, 0, NULL);
+        dispatcherThread = (HANDLE)_beginthreadex(NULL, 0, serviceCtrlDispatcherThread, lpCmdline, 0, NULL);
         if (!dispatcherThread) {
             apxLogWrite(APXLOG_MARK_ERROR "Failed to start service control dispatcher thread");
         } else {
