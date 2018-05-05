@@ -6,17 +6,23 @@
 
     This CMake project was tested with [CMake 3.11.1](https://cmake.org/files/v3.11/cmake-3.11.1-win64-x64.zip).
     
-1. JDK
+1. [JDK 1.8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 
-    TODO
+    This CMake project was tested with JDK 1.8 update 162.
 
 ## Building
 
-It's assumed that `DM_ROOT` is the directory where this git repository is cloned into.
+It's assumed that `CMDM_ROOT` is the directory where this git repository is cloned into.
 
-1. `CMAKE_USER_MAKE_RULES_OVERRIDE` option should point to `DM_ROOT/src/native/windows/apps/cmake/static_c_runtime_overrides.cmake` if building with static C/C++ runtime.
-1. `CMAKE_USER_MAKE_RULES_OVERRIDE_CXX` option should point to `DM_ROOT/src/native/windows/apps/cmake//static_cxx_runtime_overrides.cmake` if building with static C/C++ runtime.
+1. `CMAKE_USER_MAKE_RULES_OVERRIDE` option should point to `CMDM_ROOT/src/native/windows/apps/cmake/static_c_runtime_overrides.cmake` if building with static C/C++ runtime.
+1. `CMAKE_USER_MAKE_RULES_OVERRIDE_CXX` option should point to `CMDM_ROOT/src/native/windows/apps/cmake//static_cxx_runtime_overrides.cmake` if building with static C/C++ runtime.
 1. `JAVA_HOME` can be used as a hint for searching for JDK. It should point to the directory where JDK is installed. Usage of forward slash (`/`) as path delimiter is recommended over usage of backward slash (`\`) due to FindJNI CMake module.  
+1. `WINVER` option can be used to specify target Windows version. Allowed values (one of) are:
+    * `WINNT` (Windows 2000 and up) 
+    * `WINXP` (Windows XP and up, default value)
+    * `WIN2003` (Windows 2003 and up)
+    * `VISTA` (Windows Vista and up)
+    * `WIN7` (Windows 7 and up)
 
 ## Example for generation of project
 
