@@ -1557,7 +1557,7 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
     }
     apxLogWrite(APXLOG_MARK_DEBUG "JVM destroyed.");
     if (serviceFailed) {
-        gExitval = (int) vmExitCode;
+        gExitval = (int)vmExitCode;
         SetEvent(gFailureEvent);
     }
     else {
