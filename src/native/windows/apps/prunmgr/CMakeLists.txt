@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.0)
 project(prunmgr)
 
 find_package(JNI REQUIRED)
@@ -13,7 +13,6 @@ set(cxx_headers )
 set(cxx_sources )
 set(resource_headers )
 set(resource_sources )
-set(manifest_files )
 set(link_options )
 set(libraries )
 
@@ -97,13 +96,9 @@ list(APPEND resource_headers
 list(APPEND resource_sources
     "${cmdm_native_windows_apps_dir}/prunmgr/prunmgr.rc")
 
-list(APPEND manifest_files
-    "${cmdm_native_windows_apps_dir}/prunmgr/prunmgr.manifest")
-
 set(resource_files
     ${resource_headers}
-    ${resource_sources}
-    ${manifest_files})
+    ${resource_sources})
 
 set_property(SOURCE ${resource_sources} APPEND PROPERTY COMPILE_FLAGS ${resource_compile_options})
 
@@ -138,8 +133,7 @@ add_executable(${target_name} WIN32
     ${cxx_headers}
     ${cxx_sources}
     ${resource_headers}
-    ${resource_sources}
-    ${manifest_files})
+    ${resource_sources})
 target_compile_options(${target_name}
     PRIVATE
     ${cxx_compile_options})
