@@ -170,7 +170,7 @@ build_script:
       New-Item "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build" -type directory | out-null
       Set-Location -Path "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build"
       if ($env:JAVA_HOME) {
-        $java_home_cmake = "$env:JAVA_HOME" -replace "\\", '\\'
+        $java_home_cmake = "$env:JAVA_HOME" -replace "\\", '/'
         $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
       }
       switch ($env:RUNTIME_LINKAGE) {
