@@ -22,6 +22,15 @@ environment:
     - MSVC_VERSION: '14.0'
       RUNTIME_LINKAGE: 'shared'
       JDK_VERSION: '1.8'
+    - MSVC_VERSION: '14.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '9.0'
+    - MSVC_VERSION: '14.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '1.7'
+    - MSVC_VERSION: '14.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '1.6'
 
 cache:
   - C:\projects\downloads -> .appveyor.yml
@@ -162,6 +171,7 @@ build_script:
       Set-Location -Path "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build"
       if ($env:JDK_HOME) {
         $jdk_home_escaped = "$env:JDK_HOME" -replace "\\", '\\'
+        Remove-Item Env:\JAVA_HOME
       }
       switch ($env:RUNTIME_LINKAGE) {
         "static" {
