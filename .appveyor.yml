@@ -1,0 +1,209 @@
+os: Visual Studio 2015
+
+platform:
+  - x64
+  - Win32
+
+configuration:
+  - Release
+  - Debug
+
+environment:
+  DEPENDENCIES_FOLDER: 'C:\projects\dependencies'
+  DOWNLOADS_FOLDER: 'C:\projects\downloads'
+  COVERITY_TOKEN: ''
+  COVERITY_NOTIFICATION_EMAIL: ''
+
+  matrix:
+    - MSVC_VERSION: '14.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '1.8'
+      COVERITY_BUILD_CANDIDATE: False
+    - MSVC_VERSION: '14.0'
+      RUNTIME_LINKAGE: 'shared'
+      JDK_VERSION: '1.8'
+
+cache:
+  - C:\projects\downloads -> .appveyor.yml
+  - C:\projects\dependencies -> .appveyor.yml
+
+install:
+  - ps: |
+      $env:WINDOWS_SDK_ENV_BATCH_FILE = ""
+      $env:WINDOWS_SDK_ENV_PARAMETERS = ""
+      $env:MSVS_HOME = "${env:ProgramFiles(x86)}\Microsoft Visual Studio $env:MSVC_VERSION"
+      $env:VCVARS_BATCH_FILE = "$env:MSVS_HOME\VC\vcvarsall.bat"
+      switch ($env:PLATFORM) {
+        "Win32" {
+          $env:VCVARS_PLATFORM = "x86"
+        }
+        "x64" {
+          switch ($env:MSVC_VERSION) {
+            "14.0" {
+              $env:VCVARS_PLATFORM = "amd64"
+            }
+            "12.0" {
+              $env:VCVARS_PLATFORM = "amd64"
+            }
+            "11.0" {
+              $env:VCVARS_PLATFORM = "x86_amd64"
+            }
+            "10.0" {
+              $env:VCVARS_BATCH_FILE = ""
+              $env:WINDOWS_SDK_ENV_BATCH_FILE = "$env:ProgramFiles\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
+              $env:WINDOWS_SDK_ENV_PARAMETERS = "/x64 /$env:CONFIGURATION"
+            }
+            default {
+              throw "Unsupported MSVS version: $env:MSVC_VERSION"
+            }
+          }
+        }
+        default {
+          throw "Unsupported platform: $env:PLATFORM"
+        }
+      }
+      switch ($env:CONFIGURATION) {
+        "Debug" {
+          $env:CMAKE_BUILD_CONFIG = "DEBUG"
+        }
+        "Release" {
+          $env:CMAKE_BUILD_CONFIG = "RELEASE"
+        }
+        default {
+          throw "Unsupported build configuration: $env:CONFIGURATION"
+        }
+      }
+      $cmake_generator_msvc_version_suffx = " $env:MSVC_VERSION" -replace "([\d]+)\.([\d]+)", '$1'
+      switch ($env:MSVC_VERSION) {
+        "14.0" {
+          $cmake_generator_msvc_version_suffx = "$cmake_generator_msvc_version_suffx 2015"
+        }
+        "12.0" {
+          $cmake_generator_msvc_version_suffx = "$cmake_generator_msvc_version_suffx 2013"
+        }
+        "11.0" {
+          $cmake_generator_msvc_version_suffx = "$cmake_generator_msvc_version_suffx 2012"
+        }
+        "10.0" {
+          $cmake_generator_msvc_version_suffx = "$cmake_generator_msvc_version_suffx 2010"
+        }
+        "9.0" {
+          $cmake_generator_msvc_version_suffx = "$cmake_generator_msvc_version_suffx 2008"
+        }
+        default {
+          throw "Unsupported MSVS version: $env:MSVC_VERSION"
+        }
+      }
+      $cmake_generator_platform_suffix = ""
+      switch ($env:PLATFORM) {
+        "Win32" {
+          $cmake_generator_platform_suffix = ""
+        }
+        "x64" {
+          $cmake_generator_platform_suffix = " Win64"
+        }
+        default {
+          throw "Unsupported platform: $env:PLATFORM"
+        }
+      }
+      $jdk_home_base = ""
+      switch ($env:PLATFORM) {
+        "Win32" {
+          $jdk_home_base = "C:/Program Files (x86)/Java"
+        }
+        "x64" {
+          $jdk_home_base = "C:/Program Files/Java"
+        }
+        default {
+          throw "Unsupported platform for JDK: $env:PLATFORM"
+        }
+      }
+      switch ($env:JDK_VERSION) {
+        "1.6" {
+          $env:JDK_HOME = "$jdk_home_base/jdk1.6.0"
+        }
+        "1.7" {
+          $env:JDK_HOME = "$jdk_home_base/jdk1.7.0"
+        }
+        "1.8" {
+          $env:JDK_HOME = "$jdk_home_base/jdk1.8.0"
+        }
+        "9.0" {
+          $env:JDK_HOME = "$jdk_home_base/jdk9"
+        }
+        default {
+          throw "Unsupported JDK version: $env:JDK_VERSION"
+        }
+      }
+      $env:CMAKE_GENERATOR = "Visual Studio$cmake_generator_msvc_version_suffx$cmake_generator_platform_suffix"
+      $env:COVERITY_BUILD = $env:COVERITY_BUILD_CANDIDATE -and ($env:APPVEYOR_REPO_BRANCH -eq "coverity_scan") -and ($env:CONFIGURATION -eq "Release") -and ($env:PLATFORM -eq "x64")
+
+before_build:
+  - ps: |
+      Write-Host "PLATFORM                  : $env:PLATFORM"
+      Write-Host "CONFIGURATION             : $env:CONFIGURATION"
+      Write-Host "WINDOWS_SDK_ENV_BATCH_FILE: $env:WINDOWS_SDK_ENV_BATCH_FILE"
+      Write-Host "WINDOWS_SDK_ENV_PARAMETERS: $env:WINDOWS_SDK_ENV_PARAMETERS"
+      Write-Host "VCVARS_BATCH_FILE         : $env:VCVARS_BATCH_FILE"
+      Write-Host "VCVARS_PLATFORM           : $env:VCVARS_PLATFORM"
+      Write-Host "APPVEYOR_BUILD_FOLDER     : $env:APPVEYOR_BUILD_FOLDER"
+      Write-Host "C/C++ runtime linkage     : $env:RUNTIME_LINKAGE"
+      if ($env:JDK_HOME) {
+        Write-Host "JDK_HOME                  : $env:JDK_HOME"
+      }
+      Write-Host "CMAKE_GENERATOR           : $env:CMAKE_GENERATOR"
+      Write-Host "COVERITY_BUILD            : $env:COVERITY_BUILD"
+  - cmd: if not "%WINDOWS_SDK_ENV_BATCH_FILE%"=="" call "%WINDOWS_SDK_ENV_BATCH_FILE%" %WINDOWS_SDK_ENV_PARAMETERS%
+  - cmd: if not "%VCVARS_BATCH_FILE%"=="" call "%VCVARS_BATCH_FILE%" %VCVARS_PLATFORM%
+
+build_script:
+  - ps: |
+      New-Item "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build" -type directory | out-null
+      Set-Location -Path "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build"
+      switch ($env:RUNTIME_LINKAGE) {
+        "static" {
+          cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_c_runtime_overrides.cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE_CXX=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_cxx_runtime_overrides.cmake -D JAVA_HOME="$env:JDK_HOME" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
+        }
+        "shared" {
+          cmake -D JAVA_HOME="$env:JDK_HOME" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
+        }
+        default {
+          throw "Unsupported C/C++ runtime linkage: $env:RUNTIME_LINKAGE"
+        }
+      }
+      if ($LastExitCode -ne 0) {
+        throw "Generation of project failed with exit code $LastExitCode."
+      }
+      $build_cmd = "cmake --build . --config $env:CONFIGURATION"
+      if ($env:MSVC_VERSION -ne "9.0") {
+        $build_cmd = "$build_cmd -- /maxcpucount /verbosity:normal /logger:""C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"""
+      }
+      if ($env:COVERITY_BUILD -eq "True") {
+        Invoke-Expression "cov-build.exe --dir cov-int $build_cmd"
+      } else {
+        Invoke-Expression "$build_cmd"
+      }
+      if ($LastExitCode -ne 0) {
+        throw "Build failed with exit code $LastExitCode."
+      }
+      if ($env:COVERITY_BUILD -eq "True") {
+        # Compress results.
+        Write-Host "Compressing Coverity Scan results..."
+        7z.exe a -tzip "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build\$env:APPVEYOR_PROJECT_NAME.zip" "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build\cov-int" -aoa -y | out-null
+        if ($LastExitCode -ne 0) {
+          throw "Failed to zip Coverity Scan results with exit code $LastExitCode."
+        }
+        # Upload results to Coverity server.
+        $coverity_build_version = $env:APPVEYOR_REPO_COMMIT.Substring(0, 7)
+        Write-Host "Uploading Coverity Scan results (version: $coverity_build_version)..."
+        curl.exe --connect-timeout 300 --max-time 1800 --show-error --silent --location --form token="$env:COVERITY_TOKEN" --form email="$env:COVERITY_NOTIFICATION_EMAIL" --form file=@"$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build\$env:APPVEYOR_PROJECT_NAME.zip" --form version="$coverity_build_version" --form description="Build submitted via AppVeyor CI" https://scan.coverity.com/builds?project=$env:APPVEYOR_REPO_NAME
+        if ($LastExitCode -ne 0) {
+          throw "Failed to upload Coverity Scan results with exit code $LastExitCode."
+        }
+      }
+
+artifacts:
+  - path: src\native\windows\apps\build\prunsrv\$(configuration)\*.exe
+    name: prunsrv
+  - path: src\native\windows\apps\build\prunmgr\$(configuration)\*.exe
+    name: prunmgr
