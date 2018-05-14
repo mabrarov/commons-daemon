@@ -17,7 +17,7 @@
 It's assumed that `CMDM_ROOT` is the directory where this git repository is cloned into.
 
 1. `CMAKE_USER_MAKE_RULES_OVERRIDE` option should point to `CMDM_ROOT/src/native/windows/apps/cmake/static_c_runtime_overrides.cmake` if building with static C/C++ runtime.
-1. `CMAKE_USER_MAKE_RULES_OVERRIDE_CXX` option should point to `CMDM_ROOT/src/native/windows/apps/cmake//static_cxx_runtime_overrides.cmake` if building with static C/C++ runtime.
+1. `CMAKE_USER_MAKE_RULES_OVERRIDE_CXX` option should point to `CMDM_ROOT/src/native/windows/apps/cmake/static_cxx_runtime_overrides.cmake` if building with static C/C++ runtime.
 1. `JAVA_HOME` can be used as a hint for searching for JDK. It should point to the directory where JDK is installed.
     
     Note that:
