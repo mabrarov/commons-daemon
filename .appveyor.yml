@@ -31,6 +31,12 @@ environment:
     - MSVC_VERSION: '14.0'
       RUNTIME_LINKAGE: 'static'
       JDK_VERSION: '1.6'
+    - MSVC_VERSION: '10.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '1.8'
+    - MSVC_VERSION: '9.0'
+      RUNTIME_LINKAGE: 'static'
+      JDK_VERSION: '1.8'
 
 cache:
   - C:\projects\downloads -> .appveyor.yml
