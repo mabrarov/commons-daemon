@@ -109,10 +109,10 @@ install:
       $jdk_home_base = ""
       switch ($env:PLATFORM) {
         "Win32" {
-          $jdk_home_base = "C:/Program Files (x86)/Java"
+          $jdk_home_base = "C:\Program Files (x86)\Java"
         }
         "x64" {
-          $jdk_home_base = "C:/Program Files/Java"
+          $jdk_home_base = "C:\Program Files\Java"
         }
         default {
           throw "Unsupported platform for JDK: $env:PLATFORM"
@@ -120,16 +120,16 @@ install:
       }
       switch ($env:JDK_VERSION) {
         "1.6" {
-          $env:JAVA_HOME = "$jdk_home_base/jdk1.6.0"
+          $env:JDK_HOME = "$jdk_home_base\jdk1.6.0"
         }
         "1.7" {
-          $env:JAVA_HOME = "$jdk_home_base/jdk1.7.0"
+          $env:JDK_HOME = "$jdk_home_base\jdk1.7.0"
         }
         "1.8" {
-          $env:JAVA_HOME = "$jdk_home_base/jdk1.8.0"
+          $env:JDK_HOME = "$jdk_home_base\jdk1.8.0"
         }
         "9.0" {
-          $env:JAVA_HOME = "$jdk_home_base/jdk9"
+          $env:JDK_HOME = "$jdk_home_base\jdk9"
         }
         default {
           throw "Unsupported JDK version: $env:JDK_VERSION"
@@ -148,8 +148,8 @@ before_build:
       Write-Host "VCVARS_PLATFORM           : $env:VCVARS_PLATFORM"
       Write-Host "APPVEYOR_BUILD_FOLDER     : $env:APPVEYOR_BUILD_FOLDER"
       Write-Host "C/C++ runtime linkage     : $env:RUNTIME_LINKAGE"
-      if ($env:JAVA_HOME) {
-        Write-Host "JAVA_HOME                 : $env:JAVA_HOME"
+      if ($env:JDK_HOME) {
+        Write-Host "JDK_HOME                  : $env:JDK_HOME"
       }
       Write-Host "CMAKE_GENERATOR           : $env:CMAKE_GENERATOR"
       Write-Host "COVERITY_BUILD            : $env:COVERITY_BUILD"
@@ -160,12 +160,15 @@ build_script:
   - ps: |
       New-Item "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build" -type directory | out-null
       Set-Location -Path "$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\build"
+      if ($env:JDK_HOME) {
+        $jdk_home_escaped = "$env:JDK_HOME" -replace "\\", '\\'
+      }
       switch ($env:RUNTIME_LINKAGE) {
         "static" {
-          cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_c_runtime_overrides.cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE_CXX=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_cxx_runtime_overrides.cmake -D JAVA_HOME="$env:JAVA_HOME" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
+          cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_c_runtime_overrides.cmake -D CMAKE_USER_MAKE_RULES_OVERRIDE_CXX=$env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps\cmake\static_cxx_runtime_overrides.cmake -D JAVA_HOME="$jdk_home_escaped" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
         }
         "shared" {
-          cmake -D JAVA_HOME="$env:JAVA_HOME" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
+          cmake -D JAVA_HOME="$jdk_home_escaped" -G "$env:CMAKE_GENERATOR" $env:APPVEYOR_BUILD_FOLDER\src\native\windows\apps
         }
         default {
           throw "Unsupported C/C++ runtime linkage: $env:RUNTIME_LINKAGE"
