@@ -48,6 +48,8 @@ install:
       $env:WINDOWS_SDK_ENV_PARAMETERS = ""
       $env:MSVS_HOME = "${env:ProgramFiles(x86)}\Microsoft Visual Studio $env:MSVC_VERSION"
       $env:VCVARS_BATCH_FILE = "$env:MSVS_HOME\VC\vcvarsall.bat"
+      $env:MSVS_PATCH_FOLDER = ""
+      $env:MSVS_PATCH_BATCH_FILE = ""
       switch ($env:PLATFORM) {
         "Win32" {
           $env:VCVARS_PLATFORM = "x86"
@@ -67,6 +69,35 @@ install:
               $env:VCVARS_BATCH_FILE = ""
               $env:WINDOWS_SDK_ENV_BATCH_FILE = "$env:ProgramFiles\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd"
               $env:WINDOWS_SDK_ENV_PARAMETERS = "/x64 /$env:CONFIGURATION"
+            }
+            "9.0" {
+              Write-Host "Selected MSVS version ($env:MSVC_VERSION) and platform ($env:PLATFORM) require patching"
+              $env:MSVS_PATCH_FOLDER = "$env:DEPENDENCIES_FOLDER\vs2008_patch"
+              if (!(Test-Path -Path "$env:MSVS_PATCH_FOLDER")) {
+                $msvs_patch_download_folder = "$env:DOWNLOADS_FOLDER\condaci"
+                $msvs_patch_download_file = "$msvs_patch_download_folder\vs2008_patch.zip"
+                if (!(Test-Path -Path "$msvs_patch_download_file")) {
+                  $msvs2008_patch_url = "https://github.com/menpo/condaci.git"
+                  $msvs2008_patch_revision = "98d76b2089d494433ac2e3abd920123088a95a6d"
+                  $msvs_patch_download_folder_nix = "$msvs_patch_download_folder" -replace "\\", "/"
+                  Write-Host "Going to download MSVS patch from: $msvs2008_patch_url to: $msvs_patch_download_folder_nix"
+                  git clone --quiet "$msvs2008_patch_url" "$msvs_patch_download_folder_nix"
+                  git -C "$msvs_patch_download_folder_nix" checkout --quiet "$msvs2008_patch_revision"
+                  if ($LastExitCode -ne 0) {
+                    throw "File downloading failed with exit code $LastExitCode."
+                  }
+                  Write-Host "Downloaded: $msvs_patch_download_file"
+                }
+                Write-Host "Extracting MSVS patch from: $msvs_patch_download_file to: $env:MSVS_PATCH_FOLDER"
+                New-Item "$env:MSVS_PATCH_FOLDER" -type directory | out-null
+                7z.exe x "$msvs_patch_download_file" -o"$env:MSVS_PATCH_FOLDER" -aoa -y | out-null
+                if ($LastExitCode -ne 0) {
+                  throw "File extraction failed with exit code $LastExitCode."
+                }
+                Write-Host "Extracted: $env:MSVS_PATCH_FOLDER"
+              }
+              $env:MSVS_PATCH_BATCH_FILE = "$env:MSVS_PATCH_FOLDER\setup_x64.bat"
+              $env:VCVARS_PLATFORM = "x86_amd64"
             }
             default {
               throw "Unsupported MSVS version: $env:MSVC_VERSION"
@@ -157,6 +188,8 @@ before_build:
   - ps: |
       Write-Host "PLATFORM                  : $env:PLATFORM"
       Write-Host "CONFIGURATION             : $env:CONFIGURATION"
+      Write-Host "MSVS_PATCH_FOLDER         : $env:MSVS_PATCH_FOLDER"
+      Write-Host "MSVS_PATCH_BATCH_FILE     : $env:MSVS_PATCH_BATCH_FILE"
       Write-Host "WINDOWS_SDK_ENV_BATCH_FILE: $env:WINDOWS_SDK_ENV_BATCH_FILE"
       Write-Host "WINDOWS_SDK_ENV_PARAMETERS: $env:WINDOWS_SDK_ENV_PARAMETERS"
       Write-Host "VCVARS_BATCH_FILE         : $env:VCVARS_BATCH_FILE"
@@ -168,6 +201,8 @@ before_build:
       }
       Write-Host "CMAKE_GENERATOR           : $env:CMAKE_GENERATOR"
       Write-Host "COVERITY_BUILD            : $env:COVERITY_BUILD"
+  - cmd: if not "%MSVS_PATCH_FOLDER%"=="" cd /d "%MSVS_PATCH_FOLDER%"
+  - cmd: if not "%MSVS_PATCH_BATCH_FILE%"=="" call "%MSVS_PATCH_BATCH_FILE%"
   - cmd: if not "%WINDOWS_SDK_ENV_BATCH_FILE%"=="" call "%WINDOWS_SDK_ENV_BATCH_FILE%" %WINDOWS_SDK_ENV_PARAMETERS%
   - cmd: if not "%VCVARS_BATCH_FILE%"=="" call "%VCVARS_BATCH_FILE%" %VCVARS_PLATFORM%
 
