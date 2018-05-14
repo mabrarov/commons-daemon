@@ -18,7 +18,16 @@ It's assumed that `CMDM_ROOT` is the directory where this git repository is clon
 
 1. `CMAKE_USER_MAKE_RULES_OVERRIDE` option should point to `CMDM_ROOT/src/native/windows/apps/cmake/static_c_runtime_overrides.cmake` if building with static C/C++ runtime.
 1. `CMAKE_USER_MAKE_RULES_OVERRIDE_CXX` option should point to `CMDM_ROOT/src/native/windows/apps/cmake//static_cxx_runtime_overrides.cmake` if building with static C/C++ runtime.
-1. `JAVA_HOME` can be used as a hint for searching for JDK. It should point to the directory where JDK is installed. Usage of forward slash (`/`) as path delimiter is recommended over usage of backward slash (`\`) due to FindJNI CMake module.  
+1. `JAVA_HOME` can be used as a hint for searching for JDK. It should point to the directory where JDK is installed.
+    
+    Note that:
+    
+    1. [FindJNI](https://cmake.org/cmake/help/v3.0/module/FindJNI.html) CMake module has an issue with `JAVA_HOME` CMake variable - that variable should use either forward slash (`/`) as path delimiter or double backward slash (`\\`), i.e single backward slash (`\`) doesn't work with`JAVA_HOME` variable and FindJNI module because of internal issue of that module.  
+    1. [FindJNI](https://cmake.org/cmake/help/v3.0/module/FindJNI.html) CMake module has an issue with order of searching - it searches for JDK stuff using system paths first - 
+    so if your `PATH` has item like `SOME_JDK_HOME/bin` directory, then FindJNI will choose Java stuff (includes and libs) from that JDK (i.e. from `SOME_JDK_HOME` directory) and not from JDK which your `JAVA_HOME` environment variable or `JAVA_HOME` CMake variable point too.
+    This issue can be workaround with prepending your `PATH` with `JAVA_HOME/bin`.
+
+  
 1. `WINVER` option can be used to specify target Windows version. Allowed values (one of) are:
     * `WINNT` (Windows 2000 and up) 
     * `WINXP` (Windows XP and up, default value)
