@@ -1,5 +1,7 @@
 # Commons Daemon Native CMake project
 
+[![AppVeyor CI Build Status](https://ci.appveyor.com/api/projects/status/sb54phb5i0r14i66?svg=true)](https://ci.appveyor.com/project/mabrarov/commons-daemon)
+
 ## Prerequisites
 
 1. [CMake](https://cmake.org/)
