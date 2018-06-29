@@ -1355,6 +1355,7 @@ BOOL WINAPI console_handler(DWORD dwCtrlType)
 void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
 {
     DWORD rc = 0;
+    DWORD dwStartPauseMillis = 0;
     _service_status.dwServiceType      = SERVICE_WIN32_OWN_PROCESS;
     _service_status.dwCurrentState     = SERVICE_START_PENDING;
     _service_status.dwControlsAccepted = SERVICE_CONTROL_INTERROGATE;
@@ -1362,7 +1363,6 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
     _service_status.dwCheckPoint       = 0;
     _service_status.dwWaitHint         = 0;
     _service_status.dwServiceSpecificExitCode = 0;
-    DWORD dwStartPauseMillis = 0;
 
     apxLogWrite(APXLOG_MARK_DEBUG "Inside ServiceMain...");
 
