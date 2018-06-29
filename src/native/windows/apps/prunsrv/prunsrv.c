@@ -142,6 +142,9 @@ static APXCMDLINEOPT _options[] = {
 /* 37 */    { L"LogJniMessages",    L"LogJniMessages",  L"Log",         APXCMDOPT_INT | APXCMDOPT_REG, NULL, 1},
 /* 38 */    { L"PidFile",           L"PidFile",         L"Log",         APXCMDOPT_STR | APXCMDOPT_REG, NULL, 0},
 /* 39 */    { L"Rotate",            L"Rotate",          L"Log",         APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
+
+/* 40 */    { L"StartMode",         L"Pause",           L"Start",       APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
+
             /* NULL terminate the array */
             { NULL }
 };
@@ -195,6 +198,7 @@ static APXCMDLINEOPT _options[] = {
 #define SO_STARTPARAMS      GET_OPT_V(29)
 #define SO_STARTMETHOD      GET_OPT_V(30)
 #define SO_STARTMODE        GET_OPT_V(31)
+#define SO_STARTPAUSE       GET_OPT_I(40)
 
 #define SO_LOGPATH          GET_OPT_V(32)
 #define SO_LOGPREFIX        GET_OPT_V(33)
@@ -1511,6 +1515,11 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
     }
     reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
     if ((rc = serviceStart()) == 0) {
+        DWORD dwServiceStartPauseMillis = SO_STARTPAUSE;
+        if (dwServiceStartPauseMillis) {
+            /* Make a delay before reporting about start of service */
+            Sleep(dwServiceStartPauseMillis);
+        }
         /* Service is started */
         reportServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
         apxLogWrite(APXLOG_MARK_DEBUG "Waiting for worker to finish...");
