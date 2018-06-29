@@ -143,7 +143,7 @@ static APXCMDLINEOPT _options[] = {
 /* 38 */    { L"PidFile",           L"PidFile",         L"Log",         APXCMDOPT_STR | APXCMDOPT_REG, NULL, 0},
 /* 39 */    { L"Rotate",            L"Rotate",          L"Log",         APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
 
-/* 40 */    { L"StartMode",         L"Pause",           L"Start",       APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
+/* 40 */    { L"StartPause",        L"Pause",           L"Start",       APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
 
             /* NULL terminate the array */
             { NULL }
@@ -1115,8 +1115,16 @@ static DWORD serviceStart()
     DWORD  nArgs;
     LPWSTR *pArgs;
     FILETIME fts;
+    DWORD dwStartPauseMillis = SO_STARTPAUSE;
 
     apxLogWrite(APXLOG_MARK_INFO "Starting service...");
+
+    if (dwStartPauseMillis) {
+        /* Make a delay before reporting about start of service */
+        apxLogWrite(APXLOG_MARK_INFO "Pausing for %d ms.", dwStartPauseMillis);
+        Sleep(dwStartPauseMillis);
+        apxLogWrite(APXLOG_MARK_INFO "Completed pause");
+    }
 
     if (!IS_INVALID_HANDLE(gWorker)) {
         apxLogWrite(APXLOG_MARK_INFO "Worker is not defined");
@@ -1515,11 +1523,6 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
     }
     reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
     if ((rc = serviceStart()) == 0) {
-        DWORD dwServiceStartPauseMillis = SO_STARTPAUSE;
-        if (dwServiceStartPauseMillis) {
-            /* Make a delay before reporting about start of service */
-            Sleep(dwServiceStartPauseMillis);
-        }
         /* Service is started */
         reportServiceStatus(SERVICE_RUNNING, NO_ERROR, 0);
         apxLogWrite(APXLOG_MARK_DEBUG "Waiting for worker to finish...");
