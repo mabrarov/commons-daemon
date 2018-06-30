@@ -144,6 +144,7 @@ static APXCMDLINEOPT _options[] = {
 /* 39 */    { L"Rotate",            L"Rotate",          L"Log",         APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
 
 /* 40 */    { L"StartPause",        L"Pause",           L"Start",       APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
+/* 41 */    { L"StopPause",         L"Pause",           L"Stop",        APXCMDOPT_INT | APXCMDOPT_REG, NULL, 0},
 
             /* NULL terminate the array */
             { NULL }
@@ -191,6 +192,7 @@ static APXCMDLINEOPT _options[] = {
 #define SO_STOPMETHOD       GET_OPT_V(23)
 #define SO_STOPMODE         GET_OPT_V(24)
 #define SO_STOPTIMEOUT      GET_OPT_I(25)
+#define SO_STOPPAUSE        GET_OPT_I(41)
 
 #define SO_STARTIMAGE       GET_OPT_V(26)
 #define SO_STARTPATH        GET_OPT_V(27)
@@ -931,6 +933,16 @@ static unsigned WINAPI serviceStop(LPVOID lpParameter)
     BOOL   wait_to_die = FALSE;
     DWORD  timeout     = SO_STOPTIMEOUT * 1000;
     DWORD  dwCtrlType  = (DWORD)((BYTE *)lpParameter - (BYTE *)0);
+    DWORD  dwStopPauseMillis = SO_STOPPAUSE;
+
+    if (dwStopPauseMillis) {
+        /* Make a delay before stopping service */
+        apxLogWrite(APXLOG_MARK_INFO "Pausing for %d ms...", dwStopPauseMillis);
+        reportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, dwStopPauseMillis + ONE_MINUTE);
+        Sleep(dwStopPauseMillis);
+        reportServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, ONE_MINUTE);
+        apxLogWrite(APXLOG_MARK_INFO "Stop pause completed");
+    }
 
     apxLogWrite(APXLOG_MARK_INFO "Stopping service...");
 
@@ -1115,6 +1127,16 @@ static DWORD serviceStart()
     DWORD  nArgs;
     LPWSTR *pArgs;
     FILETIME fts;
+    DWORD  dwStartPauseMillis = SO_STARTPAUSE;
+
+    if (dwStartPauseMillis) {
+        /* Make a delay before starting service */
+        apxLogWrite(APXLOG_MARK_INFO "Pausing for %d ms...", dwStartPauseMillis);
+        reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, dwStartPauseMillis + ONE_MINUTE);
+        Sleep(dwStartPauseMillis);
+        reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, ONE_MINUTE);
+        apxLogWrite(APXLOG_MARK_INFO "Start pause completed");
+    }
 
     apxLogWrite(APXLOG_MARK_INFO "Starting service...");
 
@@ -1355,7 +1377,6 @@ BOOL WINAPI console_handler(DWORD dwCtrlType)
 void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
 {
     DWORD rc = 0;
-    DWORD dwStartPauseMillis = 0;
     _service_status.dwServiceType      = SERVICE_WIN32_OWN_PROCESS;
     _service_status.dwCurrentState     = SERVICE_START_PENDING;
     _service_status.dwControlsAccepted = SERVICE_CONTROL_INTERROGATE;
@@ -1513,15 +1534,6 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
             if ((hc = GetConsoleWindow()) != NULL)
                 ShowWindow(hc, SW_HIDE);
         }
-    }
-
-    dwStartPauseMillis = SO_STARTPAUSE;
-    if (dwStartPauseMillis) {
-        /* Make a delay before starting service */
-        reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, dwStartPauseMillis + 3000U);
-        apxLogWrite(APXLOG_MARK_INFO "Pausing for %d ms.", dwStartPauseMillis);
-        Sleep(dwStartPauseMillis);
-        apxLogWrite(APXLOG_MARK_INFO "Start pause completed");
     }
 
     reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
