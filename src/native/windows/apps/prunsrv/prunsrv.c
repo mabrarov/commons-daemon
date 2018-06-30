@@ -1535,7 +1535,6 @@ void WINAPI serviceMain(DWORD argc, LPTSTR *argv)
                 ShowWindow(hc, SW_HIDE);
         }
     }
-
     reportServiceStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
     if ((rc = serviceStart()) == 0) {
         /* Service is started */
